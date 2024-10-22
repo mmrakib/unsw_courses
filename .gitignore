@@ -1,0 +1,13 @@
+#
+# Rust
+#
+
+# Build/compilation files
+debug/
+target/
+
+# rustfmt backup files
+**/*.rs.bk
+
+# Debugging info. for MSVC rustc builds
+*.pdb
