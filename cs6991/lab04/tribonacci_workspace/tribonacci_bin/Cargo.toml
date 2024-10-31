@@ -1,0 +1,10 @@
+# tribonacci_bin/Cargo.toml
+
+[package]
+name = "tribonacci_bin"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tribonacci_lib = { path = "../tribonacci_lib" }
+

@@ -1,0 +1,8 @@
+# tribonacci_workspace/Cargo.toml
+
+[workspace]
+members = [
+    "tribonacci_lib",
+    "tribonacci_bin",
+]
+
