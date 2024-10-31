@@ -1,0 +1,37 @@
+MINESWEEPER EXTENSION DOCUMENTATION
+
+STAGE 4 EXPLANATION
+The fourth stage of the assignment required students to add
+functionality to allow squares to be flagged. I did this by
+extending the possible state of each square to include two more
+states: FLAGGED_SAFE, a square that is flagged and has *no* mine,
+and FLAGGED_MINE, a square that is flagged and *has* a mine.
+I defined these states to have the numbers 3 and 4 respectively.
+I then changed my print_debug and print_gameplay functions to
+allow for flag functinoality: print_debug didn't print anything
+different for flagged squares with the help of an 'if' check,
+and print_gameplay printed flagged squares as '!!' instead of '##',
+through an addition 'if' statement case. Although that was simple,
+what was harder was adding the Reveal Cross functionality. For 
+flagged squares (FLAGGED_SAFE or FLAGGED_MINE), Reveal Cross does
+not reveal the selected square, and for the four squares around it,
+reveals only if number of mines equalled number of flags. To check
+for number of flags, I created a detect_flags function, which worked
+exactly like detect_adjacent, except for the fact that it detected
+flags instead of mines, and that, if a connected square *is* revealed,
+game is lost just like game would be lost normally if selected square
+was revealed.
+
+STAGE 5 EXPLANATION
+The fifth stage of the assignment required students to add functionality
+to allow bombs to be defused. I did this by writing a 'defuse' function
+that calculated a radius based on the distance formula given in the assignment.
+It then ran through a nested loop, going through each square on or within that
+radius, and checked if they were bombs. If they were bombs, the bombs were
+removed, and on top of that, they caused a secondary reaction that defused
+more bombs. I tried to write a recursive function that recalled 'defuse', but
+I ended up crashing the stack because it called 'defuse' infinitely many times.
+So instead, I used a bit of a hacky approach (I know :<) where copied 'defuse'
+and wrote 'defuse_second', where this second function didn't have a 
+secondary function call. So the program runs 'defuse', calls 'defuse_second'
+on any mines removed, and then runs 'defuse_second', after which no more mines get removed.
