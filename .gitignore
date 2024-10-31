@@ -11,3 +11,8 @@ target/
 
 # Debugging info. for MSVC rustc builds
 *.pdb
+
+#
+# C/C++
+#
+*.out
