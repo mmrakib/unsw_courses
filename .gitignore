@@ -16,3 +16,10 @@ target/
 # C/C++
 #
 *.out
+
+#
+# Course-specific
+#
+
+# CS1521
+cs1521/chicken/testing/*

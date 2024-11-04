@@ -1,0 +1,58 @@
+// Assumes mode string is 10 characters long and has correct format
+int convert_mode_to_octal(char *mode) {
+    int octal = 0;
+
+    for (int i = 0; i < EGG_LENGTH_MODE; i++) {
+        if (mode[i] == 'd') octal += 1000;
+
+        if (mode[i] == 'r') {
+            if (i >= 1 && i <= 3) octal += 400;
+            if (i >= 4 && i <= 6) octal += 40;
+            if (i >= 7 && i <= 9) octal += 4;
+        }
+
+        if (mode[i] == 'w') {
+            if (i >= 1 && i <= 3) octal += 200;
+            if (i >= 4 && i <= 6) octal += 20;
+            if (i >= 7 && i <= 9) octal += 2;
+        }
+
+        if (mode[i] == 'x') {
+            if (i >= 1 && i <= 3) octal += 100;
+            if (i >= 4 && i <= 6) octal += 10;
+            if (i >= 7 && i <= 9) octal += 1;
+        }
+    }
+
+    return octal;
+}
+
+void TEST_SUITE_CONVERT_MODE_TO_OCTAL() {
+    FILE *stream1 = fopen("examples/1_file.subdirectory.egg", "rb");
+    FILE *stream2 = fopen("examples/hello_world.egg", "rb");
+
+    char *mode = test_get_egglet_mode(stream1);
+    int octal = test_convert_mode_to_octal(mode);
+
+    printf("CONVERT_MODE_TO_OCTAL\n");
+
+    TEST(1);
+    printf("(%d) ", octal);
+    assert(octal == 1755);
+    PASSED();
+
+    free(mode);
+
+    mode = test_get_egglet_mode(stream2);
+    octal = test_convert_mode_to_octal(mode);
+
+    TEST(2);
+    printf("(%d) ", octal);
+    assert(octal == 644);
+    PASSED();
+
+    fclose(stream1);
+    fclose(stream2);
+
+    printf("\n");
+}

@@ -1,0 +1,37 @@
+# reveal_grid__body_loop2_step:
+#         bge $t1, N_COLS, reveal_grid__body_loop2_end
+#         mul $t3, $t0, N_COLS       # product
+#         add $t3, $t3, $t1
+#         mul $t3, $t3, 8            # <- this is wrong, 8 bytes not bits!
+#         add $t5, $t2, $t3          # address
+#         lb $t4, ($t5)              # value
+#         ori $t4, $t4, IS_RVLD_MASK
+#         sb $t4, ($t5)
+#         addi $t1, $t1, 1
+#         b reveal_grid__body_loop2_step
+
+ # MIPS PSEUDO-CODE
+        #
+        # row = 0
+        # col = 0
+        # baseaddr = load address of grid
+        # loop1_start:
+        #       if not (row < N_ROWS) then jump loop1_end
+        #       row++
+        #       col = 0
+        #       jump loop2_start
+        # loop2_start:
+        #       if not (col < N_COLS) them jump loop2_end
+        #       col++
+        #       product = row * N_COLS
+        #       product = product + col
+        #       product = product * 8
+        #       addr = base_address + product
+        #       value = (addr)
+        #       value = product(baseaddr)
+        #       value = value | IS_RVLED_MASK
+        #       product(baseaddr) = value
+        #       jump loop2_start
+        # loop2_end:
+        #       jump loop1_start
+        # loop1_end:

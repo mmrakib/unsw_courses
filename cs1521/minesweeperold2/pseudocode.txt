@@ -1,0 +1,501 @@
+SUBSET 0
+
+# void reveal_grid(void) {
+#   for (int row = 0; row < N_ROWS; row++) {
+#     for (int col = 0; col < N_COLS; col++) {
+#       grid[row][col] |= IS_RVLD_MASK;
+#     }
+#   }
+# }
+
+li $s0, 0
+li $s1, 0
+
+loop1:
+    bge $s0, N_ROWS, end1
+    li $s1, 0
+
+loop2:
+    bge $s1, N_COLS, end2
+
+    la $t0, grid 
+    mul $t1, N_COLS, 1 # $t1 = number of columns per row * size of each column in bytes = the size of each row in bytes (size 1 for byte)
+    mul $t2, $s0, $t1 # $t2 = ith row * size of each row in bytes = byte offset to start of ith row
+    add $t3, $t0, $t2 # $t3 = base address of array + byte offset to start of ith row = address of start of ith row
+    mul $t4, $s1, 1 # $t4 = jth column * size of each column = byte offset for jth column (size 1 for byte)
+    add $t5, $t3, $t4 # $t5 = address of start of ith row + byte offset for jth column = address of jth column at ith row
+
+    lw $t6, ($t5)
+    ori $t6, $t6, IS_RVLD_MASK
+    sw $t6, ($t5)
+
+    add $s1, $s1, 1
+    j loop2
+
+end2:
+    addi $s0, $s0, 1
+    j loop1
+
+end1:
+
+SUBSET 1
+
+# void place_bombs(int bad_row, int bad_col) {
+#   for (int i = 0; i < total_bombs; i++) {
+#     place_single_bomb(bad_row, bad_col);
+#   }
+# }
+
+li $s0, 0
+
+loop1:
+    la $s1, total_bombs
+    lw $s2, ($s1)
+    bge $s0, $s2, end1
+
+    jal place_single_bomb
+
+    addi $s0, $s0, 1
+    j loop1
+
+end1:
+
+SUBSET 2
+
+# void mark_cell(int row, int col) {
+#   if (grid[row][col] & IS_RVLD_MASK) {
+#     if (debug_mode) {
+#       return;
+#     }
+#     printf("Cannot mark a revealed cell.\n");
+#     return;
+#   }
+#   // Unmark a marked cell.
+#   if (grid[row][col] & IS_MRKD_MASK) {
+#     grid[row][col] &= ~IS_MRKD_MASK;
+#     bomb_count++;
+#     // Mark a cell.
+#   } else {
+#     grid[row][col] |= IS_MRKD_MASK;
+#     bomb_count--;
+#   }
+# }
+
+move $s0, $a0           # int row
+move $s1, $a1           # int col
+
+la $t0, grid            # $t0 = address of array grid
+li $t7, N_COLS
+mul $t1, $t7, 1         # $t1 = size of each row in bytes
+mul $t2, $s0, $t1       # $t2 = byte offset to start of ith row
+add $t3, $t0, $t2       # $t3 = address to start of ith row
+mul $t4, $s1, 1         # $t4 = byte offset to jth col
+add $t5, $t3, $t4       # $t5 = address of jth col at ith row
+
+lb $s2, ($t5)           # value of grid[row][col]
+andi $s3, $s2, IS_RVLD_MASK
+beq $s3, FALSE, if1_false
+
+if1_true:
+la $t6, debug_mode
+lw $t7, ($t6)
+beq $t7, FALSE, if2_false
+
+if2_true:
+j mark_cell__epilogue
+
+if2_false:
+la $a0, reveal_error
+li $v0, 4
+syscall
+j mark_cell__epilogue
+
+if1_false:
+
+andi $s3, $s2, IS_MRKD_MASK
+beq $s3, FALSE, if3_else
+
+if3_true:
+noti $t8, IS_MRKD_MASK
+andi $s2, $s2, $t8
+sb $s2, ($t5)
+
+la $t6, bomb_count
+lw $t7, ($t6)
+addi $t7, $t7, 1
+sw $t7, ($t6)
+
+if3_else:
+ori $s2, $s2, IS_MRKD_MASK
+sb $s2, ($t5)
+
+la $t6, bomb_count
+lw $t7, ($t6)
+addi $t7, $t7, -1
+sw $t7, ($t6)
+
+SUBSET 3
+
+# void reveal_cell(int row, int col) {
+#   // Cannot reveal a cell that is currently marked.
+#   if (grid[row][col] & IS_MRKD_MASK) {
+#     if (debug_mode) {
+#       return;
+#     }
+#     printf("Cannot reveal a marked cell.\n");
+#     return;
+#   }
+#   if (grid[row][col] & IS_RVLD_MASK) {
+#     if (debug_mode) {
+#       return;
+#     }
+#     printf("Cell is already revealed.\n");
+#     return;
+#   }
+#   // Trigger game over if the cell is a bomb.
+#   if (grid[row][col] & IS_BOMB_MASK) {
+#     game_state = LOSE;
+#   }
+#   // Reveal the cell.
+#   if ((grid[row][col] & VALUE_MASK) == 0) {
+#     clear_surroundings(row, col);
+#   } else {
+#     grid[row][col] |= IS_RVLD_MASK;
+
+#     if (game_state != LOSE) {
+#       cells_left--;
+#     }
+#   }
+
+#   if (cells_left == 0) {
+#     game_state = WIN;
+#   }
+# }
+
+move $s0, $a0   # int row
+move $s1, $a1   # int col
+
+la $t0, grid            # $t0 = address of array grid
+li $t7, N_COLS
+mul $t1, $t7, 1         # $t1 = size of each row in bytes
+mul $t2, $s0, $t1       # $t2 = byte offset to start of ith row
+add $t3, $t0, $t2       # $t3 = address to start of ith row
+mul $t4, $s1, 1         # $t4 = byte offset to jth col
+add $t5, $t3, $t4       # $t5 = address of jth col at ith row
+
+lb $s2, ($t5)           # value of grid[row][col]
+andi $s3, $s2, IS_MRKD_MASK
+beq $s3, FALSE, if1_false
+
+if1_true:
+la $t6, debug_mode
+lw $t7, ($t6)
+beq $t7, FALSE, if2_false
+
+if2_true:
+j reveal_cell__epilogue
+
+if2_false:
+la $a0, reveal_error
+li $v0, 4
+syscall
+j reveal_cell__epilogue
+
+if1_false:
+
+andi $s3, $s2, IS_RVLD_MASK
+beq $s3, FALSE, if3_false
+
+if3_true:
+la $t6, debug_mode
+lw $t7, ($t6)
+beq $t7, FALSE, if4_false
+
+if4_true:
+j reveal_cell__epilogue
+
+if4_false:
+la $a0, already_revealed
+li $v0, 4
+syscall
+j reveal_cell__epilogue
+
+if3_false:
+
+andi $s3, $s2, IS_BOMB_MASK
+beq $s3, FALSE, if5_false
+
+if5_true:
+la $t6, game_state
+lw $t7, ($t6)
+li $t7, LOSE
+sw $t7, ($t6)
+
+if5_false:
+
+andi $s3, $s2, VALUE_MASK
+li $t8, 0
+seq $s4, $s3, $t8
+beq $s4, FALSE, if6_else
+
+if6_true:
+jal clear_surroundings
+
+if6_else:
+ori $s2, $s2, IS_RVLD_MASK
+
+la $t6, game_state
+lw $t7, ($t6)
+bne $t7, LOSE, if7_false
+
+if7_true:
+la $t8, cells_left
+lw $t9, ($t8)
+addi $t9, $t9, -1
+sw $t9, ($t8)
+
+if7_false:
+
+if6_end:
+
+bne $t9, 0, if8_false
+
+if8_true:
+la $t6, game_state
+lw $t7, ($t6)
+li $t7, WIN
+sw $t7, ($t6)
+
+if8_false:
+
+
+
+# TODO: convert this C function to MIPS
+
+# void clear_surroundings(int row, int col) {
+#   if (row < 0 || row >= N_ROWS || col < 0 || col >= N_COLS) {
+#     return;
+#   }
+#   if (grid[row][col] & IS_RVLD_MASK) {
+#     return;
+#   }
+#   // Reveal the cell.
+#   grid[row][col] |= IS_RVLD_MASK;
+#   cells_left--;
+#
+#   // Unmark the cell if it was marked.
+#   grid[row][col] &= ~IS_MRKD_MASK;
+#
+#   // Stop revealing once a numbered cell is reached.
+#   if (grid[row][col] & VALUE_MASK) {
+#     return;
+#   }
+#
+#   // Recurse to the surrounding cells in the grid.
+#   clear_surroundings(row - 1, col);
+#   clear_surroundings(row - 1, col - 1);
+#   clear_surroundings(row - 1, col + 1);
+#   clear_surroundings(row, col - 1);
+#   clear_surroundings(row, col + 1);
+#   clear_surroundings(row + 1, col - 1);
+#   clear_surroundings(row + 1, col);
+#   clear_surroundings(row + 1, col + 1);
+# }
+
+move $s0, $a0   # int row
+move $s1, $a1   # int col
+
+la $t0, grid            # $t0 = address of array grid
+li $t7, N_COLS
+mul $t1, $t7, 1         # $t1 = size of each row in bytes
+mul $t2, $s0, $t1       # $t2 = byte offset to start of ith row
+add $t3, $t0, $t2       # $t3 = address to start of ith row
+mul $t4, $s1, 1         # $t4 = byte offset to jth col
+add $t5, $t3, $t4       # $t5 = address of jth col at ith row
+
+blt $s0, 0, if1_true
+bge $s0, N_ROWS, if1_true
+blt $s1, 0, if1_true
+blt $s1, N_COLS, if1_false
+
+if1_true:
+j clear_surroundings__epilogue
+
+if1_false:
+
+lb $s2, ($t5)
+andi $s3, $s2, IS_RVLD_MASK
+beq $s3, FALSE, if2_false
+
+if2_true:
+j clear_surroundings__epilogue
+
+if2_false:
+
+ori $s2, $s2, IS_RVLD_MASK
+la $t0, cells_left
+lw $t1, ($t0)
+addi $t1, $t1, -1
+sw $t1, ($t0)
+
+li $t9, IS_MRKD_MASK
+not $t8, $t9
+and $s2, $s2, $t8
+
+andi $t7, $s2, VALUE_MASK
+beq $t7, FALSE, if3_false
+
+if3_true:
+j clear_surroundings__epilogue
+
+if3_false:
+
+sb $s2, ($t5)
+
+addi $a0, $a0, -1
+jal clear_surroundings  # row - 1, col
+
+addi $a1, $a1, -1     
+jal clear_surroundings  # row - 1, col - 1
+
+addi $a1, $a1, 2
+jal clear_surroundings  # row - 1, col + 1
+
+addi $a0, $a0, 1
+jal clear_surroundings  # row, col + 1
+
+addi $a1, $a1, -2
+jal clear_surroundings  # row, col - 1
+
+addi $a0, $a0, 1
+jal clear_surroundings  # row + 1, col - 1
+
+addi $a1, $a1, 1
+jal clear_surroundings  # row + 1, col
+
+addi $a1, $a1, 1
+jal clear_surroundings  # row + 1, col + 1
+
+
+SUBSET 4
+
+# int update_highscore(int score) {
+#   if (high_score.score < score) {
+#     high_score.score = score;
+#
+#     // Copy over the string.
+#     int i = 0;
+#     while (user_name[i] != '\0') {
+#       high_score.name[i] = user_name[i];
+#       ++i;
+#     }
+#     high_score.name[i] = '\0';
+#
+#     return TRUE;
+#   }
+#   return FALSE;
+# }
+
+la $t0, high_score
+lw $t1, 0($t0)
+
+bge $t1, $a0, if1_false
+
+if1_true:
+sw $a0, 0($t0)
+
+li $s0, 0   # int i = 0
+
+loop1_step:
+la $t2, user_name
+add $t2, $t2, $s0   # in this case, i acts as byte offset
+lb $t3, ($t2)
+
+beq $t3, '\0', loop1_end
+
+la $t4, 4($t0)
+add $t4, $t4, $s0   # in this case, i acts as byte offset
+sb $t3, ($t4)
+
+addi $s0, $s0, 1
+j loop1_step
+
+loop1_end:
+la $t4, 4($t0)
+add $t4, $t4, $s0   # in this case, i acts as byte offset
+li $t5, '\0'
+sb $t5, ($t4)
+
+li $v0, TRUE
+j update_highscore__epilogue
+
+if1_false:
+li $v0, FALSE
+j update_highscore__epilogue
+
+
+
+# void print_scores(void) {
+#   printf("-------------SCORES-----------\n\n");
+#   for (int i = 0; i < MAX_SCORES; i++) {
+#     struct UserScore curr = scores[i];
+#     if (curr.score == -1) {
+#       break;
+#     }
+#     printf("------------------------------\n");
+#     printf("* USERNAME:\t%s\n", curr.name);
+#     printf("* SCORE:\t%d\n", curr.score);
+#   }
+#   printf("------------------------------\n");
+# }
+
+la $a0, scores_msg
+li $v0, 4
+syscall
+
+li $s0, 0   # int i = 0
+
+bge $s0, MAX_SCORES, loop1_end
+loop1_step:
+la $t0, scores      # $t0 = address of scores array
+add $t0, $t0, $s0
+la $t1, ($t0)       # $t1 = address of UserScore struct at score[i]
+
+lw $t2, 0($t1)      # $t2 = curr.score
+
+bne $t2, -1, if1_false
+if1_true:
+j loop1_end
+
+if1_false:
+li $v0, 4           # set print_string just in case
+
+la $t0, scores      # $t0 = address of scores array
+add $t0, $t0, $s0
+la $t1, ($t0)       # $t1 = address of UserScore struct at score[i]
+lw $t2, 0($t1)      # $t2 = curr.score
+la $t3, 4($t1)      # $t3 = address of curr.name
+
+la $a0, scores_line_msg
+syscall
+
+la $a0, scores_username_msg
+syscall
+
+move $a0, $t3  
+syscall
+
+la $a0, scores_score_msg
+syscall
+
+move $a0, $t2
+li $v0, 1
+syscall
+
+addi $s0, $s0, 1
+j loop1_step
+
+loop1_end:
+la $a0 scores_line_msg
+li $v0, 4
+syscall

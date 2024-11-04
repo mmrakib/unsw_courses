@@ -1,0 +1,13 @@
+list_egg:
+
+open file
+
+rewind
+while file pntr seek is successful {
+    file pntr seek from curr to pathname length offset
+    read pathname length
+    read pathname
+    print pathname 
+}
+
+close file

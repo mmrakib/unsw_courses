@@ -1,0 +1,1 @@
+dcc chicken.c tests.c chicken_hash.c chicken_6_bit.c -o chicken_test

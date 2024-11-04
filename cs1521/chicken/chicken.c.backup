@@ -1,0 +1,451 @@
+////////////////////////////////////////////////////////////////////////
+// COMP1521 21T3 --- Assignment 2: `chicken', a simple file archiver
+// <https://www.cse.unsw.edu.au/~cs1521/21T3/assignments/ass2/index.html>
+//
+// Written by Mohammad M. Rakib (z5361511) on 20th of November, 2021
+//
+// 2021-11-08   v1.1    Team COMP1521 <cs1521 at cse.unsw.edu.au>
+
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <stdarg.h>
+
+#include "chicken.h"
+
+#define TRUE 1
+#define FALSE 0
+
+long get_file_length(FILE *stream) {
+    long curr_pos = ftell(stream);
+    long file_length;
+
+    fseek(stream, 0, SEEK_END);
+    file_length = ftell(stream);
+    fseek(stream, curr_pos, SEEK_SET);
+
+    return file_length;
+}
+
+int goto_pos(FILE *stream, long pos, int origin) {
+    int error = fseek(stream, pos, origin);
+    
+    long curr_pos = ftell(stream);
+    long file_length = get_file_length(stream);
+
+    if (curr_pos >= file_length) return -1;
+    if (ferror(stream) != 0) return -2;
+    if (error != 0) return -3;
+
+    return 0;
+}
+
+// Assumes current position is start of egglet
+uint16_t get_egglet_pathlen(FILE *stream) {
+    long start_pos = ftell(stream);
+
+    goto_pos(stream, EGG_OFFSET_PATHNLEN, SEEK_CUR);
+
+    uint16_t byte1 = fgetc(stream);
+    uint16_t byte2 = fgetc(stream);
+
+    uint16_t pathlen = byte1 | (byte2 << 8);
+
+    goto_pos(stream, start_pos, SEEK_SET);
+
+    return pathlen;
+}
+
+// Assumes current position is start of egglet
+uint64_t get_egglet_contentlen(FILE *stream) {
+    long start_pos = ftell(stream);
+    uint16_t pathlen = get_egglet_pathlen(stream);
+
+    goto_pos(stream, EGG_OFFSET_PATHNLEN + EGG_LENGTH_PATHNLEN + pathlen, SEEK_CUR);
+
+    uint64_t byte1 = fgetc(stream);
+    uint64_t byte2 = fgetc(stream);
+    uint64_t byte3 = fgetc(stream);
+    uint64_t byte4 = fgetc(stream);
+    uint64_t byte5 = fgetc(stream);
+    uint64_t byte6 = fgetc(stream);
+    
+    uint64_t contentlen = byte1 | (byte2 << 8) | (byte3 << 16) | 
+                (byte4 << 24) | (byte5 << 32) | (byte6 << 40);
+    
+    goto_pos(stream, start_pos, SEEK_SET);
+
+    return contentlen;
+}
+
+// Assumes current position is start of egglet
+uint64_t get_egglet_size(FILE *stream) {
+    uint16_t pathlen = get_egglet_pathlen(stream);
+    uint64_t contentlen = get_egglet_contentlen(stream);
+
+    uint64_t eggletlen = 21 + pathlen + contentlen;
+
+    return eggletlen;
+}
+
+// Assumes current position is start of egglet
+// NOTE: Needs to be free'd after use
+char *get_egglet_pathname(FILE *stream) {
+    long start_pos = ftell(stream);
+
+    uint16_t pathlen = get_egglet_pathlen(stream);
+    char *pathname = malloc(pathlen + 1);
+
+    goto_pos(stream, EGG_OFFSET_PATHNLEN + EGG_LENGTH_PATHNLEN, SEEK_CUR);
+
+    fread(pathname, 1, pathlen, stream);
+    pathname[pathlen] = '\0';
+
+    goto_pos(stream, start_pos, SEEK_SET);
+
+    return pathname;
+}
+
+// Assumes current position is start of egglet
+// NOTE: Needs to be free'd after use
+char *get_egglet_mode(FILE *stream) {
+    long start_pos = ftell(stream);
+
+    char *mode = malloc(EGG_LENGTH_MODE + 1); 
+
+    goto_pos(stream, EGG_OFFSET_MODE, SEEK_CUR);
+
+    for (int i = 0; i < EGG_LENGTH_MODE; i++) {
+        mode[i] = fgetc(stream);
+    }
+    mode[EGG_LENGTH_MODE] = '\0';
+
+    goto_pos(stream, start_pos, SEEK_SET);
+
+    return mode;
+}
+
+// Assumes current position is start of egglet
+uint8_t get_egglet_format(FILE *stream) {
+    long start_pos = ftell(stream);
+
+    goto_pos(stream, EGG_OFFSET_FORMAT, SEEK_CUR);
+
+    uint8_t format = fgetc(stream);
+
+    goto_pos(stream, start_pos, SEEK_SET);
+
+    return format;
+}
+
+// Assumes current position is start of egglet
+int egglet_next(FILE *stream) {
+    if (goto_pos(stream, get_egglet_size(stream), SEEK_CUR) == 0) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+// Assumes current position is start of egglet
+uint8_t get_egglet_hash(FILE *stream) {
+    long start_pos = ftell(stream);
+
+    uint16_t pathlen = get_egglet_pathlen(stream);
+    uint64_t contentlen = get_egglet_contentlen(stream);
+
+    goto_pos(stream, 20 + pathlen + contentlen, SEEK_CUR);
+
+    uint8_t hash = fgetc(stream);
+
+    goto_pos(stream, start_pos, SEEK_SET);
+
+    return hash;
+}
+
+// Assumes current position is start of egglet
+uint8_t calculate_hash(FILE *stream) {
+    long start_pos = ftell(stream);
+    uint64_t egglet_size = get_egglet_size(stream);
+
+    uint8_t hash = 0;
+    uint8_t byte = 0;
+
+    for (int i = 1; i < egglet_size; i++) {
+        byte = fgetc(stream);
+
+        if (i == 1) {
+            if (byte != EGGLET_MAGIC) {
+                fprintf(stderr, "error: incorrect first egglet byte: %#x should be 0x63\n", byte);
+                exit(EXIT_FAILURE);
+            } 
+        }
+
+        hash = egglet_hash(hash, byte);
+    }
+
+    goto_pos(stream, start_pos, SEEK_SET);
+
+    return hash;
+}
+
+// Assumes current position is start of egglet
+int check_egglet_hash(FILE *stream) {
+    uint8_t saved_hash = get_egglet_hash(stream);
+    uint8_t hash = calculate_hash(stream);
+
+    if (hash == saved_hash) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+// Assumes mode string is 10 characters long and has correct format
+int convert_mode_to_octal(char *mode) {
+    int octal = 0;
+
+    for (int i = 0; i < EGG_LENGTH_MODE; i++) {
+        if (mode[i] == 'd') octal += 01000;
+
+        if (mode[i] == 'r') {
+            if (i >= 1 && i <= 3) octal += 0400;
+            if (i >= 4 && i <= 6) octal += 040;
+            if (i >= 7 && i <= 9) octal += 04;
+        }
+
+        if (mode[i] == 'w') {
+            if (i >= 1 && i <= 3) octal += 0200;
+            if (i >= 4 && i <= 6) octal += 020;
+            if (i >= 7 && i <= 9) octal += 02;
+        }
+
+        if (mode[i] == 'x') {
+            if (i >= 1 && i <= 3) octal += 0100;
+            if (i >= 4 && i <= 6) octal += 010;
+            if (i >= 7 && i <= 9) octal += 01;
+        }
+    }
+
+    return octal;
+}
+
+// Assumes octal is in correct format
+// NOTE: Needs to be free'd after use
+char *convert_octal_to_mode(int octal) {
+    char *mode = malloc(EGG_LENGTH_MODE + 1);
+
+    if (__S_IFDIR & octal) mode[0] = 'd'; else mode[0] = '-';
+
+    if (S_IRUSR & octal) mode[1] = 'r'; else mode[1] = '-';
+    if (S_IWUSR & octal) mode[2] = 'w'; else mode[2] = '-';
+    if (S_IXUSR & octal) mode[3] = 'x'; else mode[3] = '-';
+
+    if (S_IRGRP & octal) mode[4] = 'r'; else mode[4] = '-';
+    if (S_IWGRP & octal) mode[5] = 'w'; else mode[5] = '-';
+    if (S_IXGRP & octal) mode[6] = 'x'; else mode[6] = '-';
+
+    if (S_IROTH & octal) mode[7] = 'r'; else mode[7] = '-';
+    if (S_IWOTH & octal) mode[8] = 'w'; else mode[8] = '-';
+    if (S_IXOTH & octal) mode[9] = 'x'; else mode[9] = '-';
+
+    mode[10] = '\0';
+
+    return mode;
+}
+
+// Assumes current position is start of egglet
+void write_content_to_file(FILE *stream, FILE *output) {
+    long start_pos = ftell(stream);
+
+    uint16_t pathlen = get_egglet_pathlen(stream);
+    uint64_t contentlen = get_egglet_contentlen(stream);
+
+    goto_pos(stream, 20 + pathlen, SEEK_CUR);
+
+    uint8_t byte;
+    for (int i = 0; i < contentlen; i++) {
+        byte = fgetc(stream);
+        fputc(byte, output);
+    }
+
+    goto_pos(stream, start_pos, SEEK_SET);
+    goto_pos(output, 0, SEEK_SET);
+}
+
+// Assumes current position is start of egglet
+void extract_egglet_to_file(FILE *stream) {
+    long start_pos = ftell(stream);
+
+    char *pathname = get_egglet_pathname(stream);
+    char *mode = get_egglet_mode(stream);
+
+    FILE *output = fopen(pathname, "w+b");
+
+    write_content_to_file(stream, output);
+
+    // TODO: Fix mode-setting, likely failing because function not returning octal
+    chmod(pathname, convert_mode_to_octal(mode));
+
+    free(pathname);
+    free(mode);
+    fclose(output);
+
+    goto_pos(stream, start_pos, SEEK_SET);
+}
+
+// TODO: Find what's wrong with contentlen/content section
+// NOTE: Needs to be free'd after use
+char *create_egglet_buffer(char *pathname, int format) {
+    struct stat file_status;
+    if (stat(pathname, &file_status) != 0) {
+        fprintf(stderr, "error: could not retrieve file status for %s\n", pathname);
+        exit(EXIT_FAILURE);
+    }
+
+    char *mode = convert_octal_to_mode(file_status.st_mode);
+    uint16_t pathlen = (uint16_t)strlen(pathname);
+    uint64_t contentlen = (uint64_t)file_status.st_size; 
+
+    char *buffer = malloc(21 + pathlen + contentlen);
+
+    buffer[0] = EGGLET_MAGIC;
+    buffer[1] = format;
+    
+    for (int i = 2; i < 2 + EGG_LENGTH_MODE; i++) {
+        buffer[i] = mode[i - 2];
+    }
+
+    buffer[12] = (pathlen & 0xFF);
+    buffer[13] = (pathlen & 0xFF00) >> 8;
+
+    for (int i = 14; i < 14 + pathlen; i++) {
+        buffer[i] = pathname[i - 14];
+    }
+
+    buffer[14 + pathlen] = (contentlen & 0xFF); 
+    buffer[14 + pathlen + 1] = (contentlen & 0xFF00) >> 8; 
+    buffer[14 + pathlen + 2] = (contentlen & 0xFF0000) >> 16;
+    buffer[14 + pathlen + 3] = (contentlen & 0xFF000000) >> 24;
+    buffer[14 + pathlen + 4] = (contentlen & 0xFF00000000) >> 32; 
+    buffer[14 + pathlen + 5] = (contentlen & 0xFF0000000000) >> 40; 
+
+    FILE *stream = fopen(pathname, "rb");
+
+    for (int i = 14 + pathlen + 6; i < 14 + pathlen + 6 + contentlen; i++) {
+        buffer[i] = fgetc(stream);
+    }
+
+    uint8_t hash = 0;
+    for (int i = 0; i < 14 + pathlen + 6 + contentlen; i++) {
+        hash = egglet_hash(hash, buffer[i]);
+    }
+    buffer[14 + pathlen + 6 + contentlen] = hash;
+
+    free(mode);
+    fclose(stream);
+
+    return buffer;
+}
+
+// Assumes file pointer at the end of last egglet written
+void write_egglet_to_file(FILE *stream, char *pathname, char *buffer) {
+    struct stat file_status;
+    if (stat(pathname, &file_status) != 0) {
+        fprintf(stderr, "error: could not retrieve file status for %s\n", pathname);
+        exit(EXIT_FAILURE);
+    }
+
+    uint16_t pathlen = (uint16_t)strlen(pathname);
+    uint64_t contentlen = (uint64_t)file_status.st_size;
+
+    for (int i = 0; i < 21 + pathlen + contentlen; i++) {
+        fputc(buffer[i], stream);
+    }
+}
+
+void list_egg(char *egg_pathname, int long_listing) {
+    FILE *stream = fopen(egg_pathname, "rb");
+
+    do {
+        char *pathname = get_egglet_pathname(stream);
+
+        if (long_listing) {
+            char *mode = get_egglet_mode(stream);
+            uint8_t format = get_egglet_format(stream);
+            uint64_t contentlen = get_egglet_contentlen(stream);
+
+            if (format == 0x36) format = 6;
+            if (format == 0x37) format = 7;
+            if (format == 0x38) format = 8;
+            
+            printf("%s  %d  %5lu  %s\n", mode, format, contentlen, pathname);
+
+            free(mode);
+        } else {
+            printf("%s\n", pathname);
+        }
+
+        free(pathname);
+    } while (egglet_next(stream));
+
+    fclose(stream);
+}
+
+void check_egg(char *egg_pathname) {
+    FILE *stream = fopen(egg_pathname, "rb");
+
+    do {
+        char *pathname = get_egglet_pathname(stream);
+
+        if (check_egglet_hash(stream)) {
+            printf("%s - correct hash\n", pathname);
+        } else {
+            uint8_t calculated_hash = calculate_hash(stream);
+            uint8_t saved_hash = get_egglet_hash(stream);
+            printf("%s - incorrect hash %#x should be %#x\n", 
+                pathname, calculated_hash, saved_hash);
+        }
+
+        free(pathname);
+    } while (egglet_next(stream));
+
+    fclose(stream);
+}
+
+void extract_egg(char *egg_pathname) {
+    FILE *stream = fopen(egg_pathname, "rb"); 
+
+    do {
+        char *pathname = get_egglet_pathname(stream);
+
+        printf("Extracting: %s\n", pathname);
+        extract_egglet_to_file(stream);
+
+        free(pathname);
+    } while (egglet_next(stream));
+
+    fclose(stream);
+}
+
+void create_egg(char *egg_pathname, int append, int format,
+                int n_pathnames, char *pathnames[n_pathnames]) {
+    FILE *stream = fopen(egg_pathname, ((append) ? "a+b" : "w+b"));
+
+    for (int i = 0; i < n_pathnames; i++) {
+        char *pathname = pathnames[i];
+        char *buffer = create_egglet_buffer(pathname, format);
+
+        printf("Adding: %s\n", pathname);
+        write_egglet_to_file(stream, pathname, buffer);
+
+        free(buffer);
+    }
+
+    fclose(stream);
+}

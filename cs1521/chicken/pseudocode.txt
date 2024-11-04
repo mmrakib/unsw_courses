@@ -1,0 +1,77 @@
+function extract_egglet(stream, pathname):
+    save start position of egglet
+
+    check if file or directory
+    if file:
+        allocate
+        write file contents
+        set mode
+        free
+    else if directory:
+        allocate
+        create directory
+        set mode
+        free
+        for (i = 0; i < number of items in directory; i++):
+            extract_egglet(stream, pathname + )
+
+
+    goto start position of egglet
+
+function extract_egg(egg_pathname):
+    stream = open_file(egg_pathname)
+
+    do {
+        allocate pathname
+
+        extract_egglet(stream, pathname)
+
+        free pathname
+    } while (set file pointer to start of next egglet)
+
+    close_file(stream)
+
+
+
+
+
+
+
+
+
+
+function add_egglet(eggfile, pathname):
+    check if file or directory
+    if file:
+        allocate
+        write
+        free
+    else if directory:
+        allocate
+        write
+        free
+        for (i = 0; i < number of items in directory; i++):
+            add_egglet(eggfile, pathname + '/' + directory[i])
+
+
+function add_egglet(eggfile, pathname):
+    allocate
+    write
+    free
+    if directory:
+        for (i = 0; i < number of items in directory; i++)
+            add_egglet(eggfile, pathname + '/' + directory[i])
+
+
+
+
+
+
+// void add_egglet_to_file(FILE *stream, char *pathname, int format) {
+//     char *buffer = create_egglet_buffer(pathname, format);
+
+//     printf("Adding: %s\n", pathname);
+//     write_egglet_to_file(stream, pathname, buffer);
+
+//     free(buffer);
+// }
