@@ -1,0 +1,134 @@
+====== BASICS ======
+
+--- Shebang ---
+shebang: {}
+
+--- Comments ---
+comment: {
+    text: ""
+}
+
+--- Variables ---
+variable: {
+    name: ""
+    value: ""
+    is_special: True|False
+    is_braced: True|False
+}
+
+--- Commands ---
+command: {
+    function: ""
+    arguments: []
+    is_backticked: True|False
+    is_parenthesised: True|False
+}
+
+--- Assignment ---
+assignment: {
+    variable: {}
+    value: ""
+}
+
+--- Redirection ---
+redirection: {
+    command: {}
+    filename: ""
+}
+
+--- Expressions ---
+expression: {
+    text: ""
+}
+
+--- Glob (*, ?, [, ]) ---
+glob: {
+    type: ""
+    text: ""
+}
+
+--- String ---
+string: {
+    value: ""
+    is_single_quoted: True|False
+    is_double_quoted: True|False
+    variables_used: [variable {}, ...]
+    commands_used: [command {}, ...]
+}
+
+
+====== BUILT-INS/KEYWORDS ======
+
+--- Echo ---
+echo: {
+    text: string {}
+    is_newline_ended: True|False
+}
+
+--- Exit ---
+exit: {
+    return_val: ""
+}
+
+--- Change Directory ---
+cd: {
+    directory: ""
+}
+
+--- Read ---
+read: {
+    variable: {}
+}
+
+
+====== BLOCKS ======
+
+--- Condition ---
+condition: {
+    left_val: ""
+    right_val: ""
+    operator: ""
+}
+
+--- For Loop ---
+for: {
+    type: ""
+    iterator: ""
+    iterable: []
+    body: {}
+}
+
+--- If ---
+if: {
+    conditions: [condition {}, ...]
+    connector: ""
+    body_true: {}
+    body_false: {}
+}
+
+--- While ---
+while: {
+    conditions: [condition {}, ...]
+    connector: ""
+    iterator: ""
+    iterable: []
+    body: {}
+}
+
+--- Case ---
+case: {
+    conditions: [condition {}, ...]
+    bodies: [{}, ...]
+}
+
+""" if (len(string['variable_refs']) > 0):
+                        format_string = '.format('
+                        for i, var in enumerate(string['variable_refs']):
+                            if (i == len(string['variable_refs']) - 1):
+                                format_string += f'{var}'
+                            else:
+                                format_string += f'{var}, '
+                        format_string += ')'
+                        output = 'print("{}"{})\n'.format(print_string, format_string)
+                        output = indent + output
+                        self.output_lines.append(output)"""
