@@ -1,0 +1,23 @@
+Question 3
+
+(a) Which of the given sequences (A, B, C or D) would be produced by a
+    valid post-order traversal of the same tree? Explain your answer.
+
+The answer is B.
+
+This is because a post-order traversal will start from 2, then go to 8 before going to 7, eliminating A, C and D.
+
+Value in the root node: 36
+
+Value in the left child (of the root): 32
+
+Value in the right child (of the root): 39
+
+(c) Give the rotations that are performed (if any) as a result of
+    inserting each value.
+
+When 25 is inserted, the tree is rotated at node 22 since the height of the right subtree is 2 more than the left.
+This causes a left rotation at node 22.
+
+When 8 is inserted, the tree is rotated at node 5 since the height of the right subtree is 2 more than the left.
+This causes first a right rotation on 13, then a left rotation on 5.

@@ -1,0 +1,9 @@
+Question 4
+
+Which of the given algorithms could have been used to construct the
+mininum spanning tree? Justify your answer.
+
+It can only be Kruskal's algorithm, because it's the only algorithm that adds edges to the empty minimum spanning tree globally.
+Prim's algorithm starts from a node, then expands out based off of all edges that are incident to currently traversed nodes. 
+However, since C-D got added right after A-E, and C-D is not connected to A-E, only Kruskal's could've done this. 
+Same with DFS, which traverse to adjacent nodes via incident edges, and therefore also could not have been used here because of the jump.

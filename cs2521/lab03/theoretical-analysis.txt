@@ -1,0 +1,40 @@
+Theoretical Analysis of IntListInsertInOrder
+
+NOTE: Your time complexities should be in terms of n, where n is the
+      size of the given list.
+
+---------
+Best Case
+---------
+
+Best case time complexity: O(1)
+
+Explanation: 
+In the best case scenario, the algorithm will insert a new node at the start of the list, or position 1.
+
+This means the algorithm will not require any iteration, and the time complexity will be O(1).
+
+----------
+Worst Case
+----------
+
+Worst case time complexity: O(n)
+
+Explanation:
+
+In the worst case scenario, the algorithm will insert a new node at the end of the list, or the
+nth position. 
+
+This means we will have to iterate through the list n times, and the time complexity will be O(n).
+
+------------
+Average Case
+------------
+
+Average case time complexity: O(n)
+
+Explanation: 
+
+In the average case, we can assume each position in the n node long linked list as an equal 'chance' of having an element inserted in it.
+
+This means that the average number of iterations per insert function will be n/2, meaning time complexity, with all constants removed, will be O(n).

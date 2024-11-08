@@ -1,0 +1,55 @@
+
+NOTE:
+- Your time complexities should be expressed in big-O notation and be in
+  terms of either:
+  - n, where n is the number of nodes in the tree, or
+  - h, where h is the height of the tree
+
+=================
+  bstNumLeaves
+=================
+
+- Worst case time complexity: O(n)
+
+- Explanation:
+The time complexity would be O(n) because the algorithm needs to traverse over all n nodes of the tree in
+order to reach the leaf nodes, including the leaf nodes, which it needs to traverse over to count. This is
+similar to the time complexities of other BST traversal algorithms.
+
+=================
+    bstRange
+=================
+
+- Worst case time complexity: O(h)
+
+- Explanation:
+The time complexity would be O(h) because the algorithm needs to traverse down the height of the tree on
+both the left and right sides of the tree in order to find the minimum and maximum value respectively.
+Therefore, the time complexity scales with how high the tree goes.
+
+=================
+ bstDeleteLeaves
+=================
+
+- Worst case time complexity: O(n)
+
+- Explanation:
+Similar to the number of leaves algorithm, the delete all leaves algorithm has a time complexity of O(n).
+This is because the algorithm needs to traverse over all n nodes of the tree in order to reach the leaf nodes
+to then delete. This is similar to the time complexity of other BST traversal algorithms.
+
+=================
+  bstLevelOrder
+=================
+
+- Worst case time complexity: O(n)
+
+- Explanation:
+The time complexity would be O(n). This is because traversing through all n nodes of the BST, adding to the 
+queue, dequeueing and then printing, scales according to the total number of nodes (n) in the BST.
+
+One should note that the QueueFree() function seems to be O(n), since it iterates through the whole queue
+first, individually freeing all elemenets before freeing the whole queue. Although this is the worst-case
+time complexity, given the way our algorithm works, this worst-case will never occur. This is because our
+algorithm explicitly dequeues individual elements after printing them, meaning that the free-ing of individual
+queue elements is done in the main O(n) loop of the whole function.

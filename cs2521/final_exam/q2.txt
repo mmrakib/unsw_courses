@@ -1,0 +1,16 @@
+Question 2
+
+Explain why the compilation error occurred and briefly describe how it
+can be fixed.
+
+This means there is an error in the declaration or definition of the 'graph' data structure in the header file.
+
+It is most likely the case that 'struct graph' is defined in the implementation .c file called 'Graph.c' and not re-declared in 'Graph.h' to be imported
+and used else where.
+
+Therefore, this would explain the 'Incomplete Type' error shown in the output. The type would be 'complete' if it were to be declarated in the .h file instead of just the implementation file. 
+
+The reason this error doesn't occur at 'Graph g = GraphNew(nV);' line is because the 'Graph' typedef exists in the .h file, even though the struct declaration doesn't.
+This is not enough for the 'main.c' file to recognise the 'struct graph'.
+
+It can also be that the .h file contains 'struct graph { };' where the braces are empty because members are not defined. So the error is either a definiton or declaration error.

@@ -1,0 +1,53 @@
+Question 1
+
+(a) What is the maximum input size that can be processed? Justify your
+    answer.
+
+An algorithm with time complexity O(2^n) can process an input size of 10 per day.
+
+2^(10) = 1024
+2^(10) * 1000 = 1024000
+2^x = 1024000
+x = log_2 (1024000) = 19.97
+
+Therefore, maximum input on the faster computer will be floor(19.97) or 19.
+
+After rouding, we can say that the maximum input size is 19 for a computer 1000 times faster.
+
+(b) Which of the two algorithms is more efficient? Justify your answer.
+
+The time complexity of a binary search is O(1 * log_2(n)), since it takes one comparison per iteration, and we divide the search space by 2.
+The time complexity of a quad search is O(3 * log_4(n)), since it takes three comparisons per iteration, and we divide the search space by 4.
+
+If we do the math:
+
+3 * log_4(n) = 
+3 * log_2(n)/log_2(4) =
+3/2 * log_2(n)
+
+Therefore, 3/2 is more than the 1 in front of log_2(n) for the binary search time complexity.
+Therefore, binary search is more efficient than quad search.
+
+(c) What are the time complexities of fnA() and fnB() in terms of a and
+    b? Justify your answer.
+
+For the function fnA(), all operations, such as the base condition and the comparison, are O(1). The function calls itself once, with
+a smaller input size between indices (a + 1, b) instead of (a, b). This means the difference between a and b, or (b - a), is the number
+of times the algorithm will recurse. The recurrence relation is T(a, b) = T(a + 1, b) + O(1) Therefore, time complexity is for fnA() is:
+
+O(b - a) + O(1) =
+O(b - a + 1) =
+O(b - a)
+
+For the function fnB(), all operations such as the base and comparison are also O(1). However, the function calls itself once and fnA() once too.
+This means the recurrence relation is: 
+
+T_2(a, b) = T_2(a + 1, b) + T(a, b) + O(1)
+T_2(a, b) = T_2(a + 1, b) + O(b - a) + O(1)
+
+Since this function also reduces the size of input into a smaller subproblem between indices a + 1 and b, it also run b - a times, and thus has a O(b - a)
+time complexity.
+
+In total,
+
+T_2(a, b) = ()

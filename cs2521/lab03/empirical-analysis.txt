@@ -1,0 +1,37 @@
+Empirical Analysis of sortIntList
+
+Input      Initial    Number     Avg Time           Avg Time
+Size       Order      of Runs    for sortIntList    for sort
+
+10000      random     10          0.07               0.00
+20000      random     10          0.45               0.00
+40000      random     10          2.34               0.01
+80000      random     5           10.41              0.03
+100000     random     5           16.62              0.04
+120000     random     5           24.32              0.06
+
+10000      sorted     10          0.14               0.00
+20000      sorted     10          0.57               0.00
+40000      sorted     10          2.30               0.00
+80000      sorted     5           9.21               0.01
+100000     sorted     5           14.32              0.02
+120000     sorted     5           20.60              0.03
+
+10000      reverse    10          0.00               0.00
+20000      reverse    10          0.00               0.00
+40000      reverse    10          0.00               0.01
+80000      reverse    5           0.01               0.02
+100000     reverse    5           0.02               0.02
+120000     reverse    5           0.02               0.03
+
+Explanation of timing results:
+
+In the previous task, the theoretical time complexities for the best-case, worst-case and average case scenarios were O(1), O(n) and O(n) respectively.
+
+The best case occurs for the insertion sort whenever the element to insert is at the start of the list. This occurs when the list is ordered in reverse, because the highest number is always at the start. 
+
+This means that for the reverse order, the sorting algorithm is optimal and its efficiency matches that of the Linux 'sort' command.
+
+For the sorted order, it is always the worst case scenario, since the element to insert is always at the end, and the algorith needs to iterate n times. 
+
+For the random order, it is the average case scenario, as it is somewhere in between best and worse case.

@@ -1,0 +1,18 @@
+Question 5
+
+(a) Describe and justify the steps you would take to determine which
+    sorting algorithm the program uses.
+
+I would run both programs on reversed sequence of numbers multiple times, each time increasing the input size considerably.
+
+At high input sizes, the program implementing regular quicksort should do considerably worse (O(n^2)) compared to the program implementing 
+median-of-three quicksort, which maintains its average-case complexity even at these larger input sizes (O(n log n)). The one that runs with the least time
+under these large inputs is the median-of-three quicksort program.
+
+(b) Is the sorting algorithm that the program uses stable? How confident
+    are you in your conclusion? Explain your answer.
+
+I think the program is *most likely* stable. This is because for the pairs with the same first element, the program maintains the order of those pairs
+with the order they were in in the original sequence. For example, (4, 7) -> (4, 3) -> (4, 4) appear in the exact same order after each-other in both sequences,
+with the latter sequence obviously being sorted while the former has some random elements in between. It is still possible for this to be unstable though as its hard
+to be confident in something like this with one example.
