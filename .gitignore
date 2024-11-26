@@ -18,6 +18,11 @@ target/
 *.out
 
 #
+# JS 
+#
+node_modules/
+
+#
 # Course-specific
 #
 
