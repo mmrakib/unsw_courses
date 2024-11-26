@@ -1,0 +1,11 @@
+1. 
+I think the Rust feature stopping this code from compiling is the compliance of *ownership*. 
+In Rust, variables have ownership of the data they hold. When `let string1 = my_string;` is executed, 
+ownership of `my_string` is 'moved' to `string1`. This means `my_string` is no longer valid. Thus, when 
+`let string2 = my_string;` is executed, the code fails because `my_string` has already been moved to 
+`string1` and is no longer accessible.
+
+2.
+The function I'd use to fix this code would be the `.clone()` method. This method creates a deep copy of 
+`String` allowing both `string1` and `string2` to own separate copies of the data. 
+

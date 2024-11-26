@@ -1,0 +1,25 @@
+1.
+`Rc<T>` is a referenced counted smart pointer that allows multiple ownership of a value by reference.
+
+`Arc<T>` is an atomic reference counted smart pointer that allows for multiple ownership while using atomic 
+operations for access to ensure thread-safety.
+
+2.
+I think it fails because `RefCell<T>` is not thread-safe, and wrapping it in an `Arc<T>` does not necessarily 
+magically make it thread-safe.
+
+`RefCell<T>` allow s for mutable access to its contents through run-time borrow checking. It enforces Rust's 
+borrowing rules at runtime (instead of compile-time) to ensure safe shared mutability within a single thread.
+
+Now when we do `Arc<RefCell<T>>`, it allows safe sharing of the `RefCell<T>` itself across threads, but not 
+the *contents* of `RefCell<T>`, which are still managed by its non-thread-safe access operations.
+
+Rust requires types shared across threads to implement the `Send + Sync` traits, but `RefCell<T>` does not implement 
+`Sync` so it cannot be shared safely across threads.
+
+3.
+I believe the best fix for this code would be to replace `RefCell<T>` with a `Mutex<T>` which are thread-safe
+alternatives for sharing mutable memory across muliple threads. 
+
+Thus, an `Arc<Mutex<>>` allows sahred ownership of the contents across threads while ensuring safe and synchronized
+access.

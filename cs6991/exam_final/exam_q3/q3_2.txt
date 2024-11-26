@@ -1,0 +1,17 @@
+1.
+In Mitch's original design, the function accepts a function pointer as the second argument. However, function pointers 
+can only point to free functions (i.e. top-level functions without captured environment). This limits the flexibility 
+of `count` as closures cannot be used.
+
+The first suggested change improves this by using a boxed trait object of type `Fn(T)`, which allows for any function-like 
+object implemented the `Fn` trait to be used.
+
+2.
+The seconnd suggested changed says that one should replace the boxed trait object with a generic type parameter using `impl Trait`. 
+This is a lot better since using `dyn` as before involves dynamic dispatch and heap allocation, incurring runtime overhead. The `impl 
+Trait` enables static dispatch and allows the compiler to inline the function call and optimize performance.
+
+3.
+The third suggessted change replaces `impl Fn(T)` with `impl FnMut(T)`, again improving flexibility by allowing for mutable 
+function-like objects to be used as the predicate. `FnMut` is also backwards-compatible with `Fn`, so there is no loss of 
+functionality, only gain.

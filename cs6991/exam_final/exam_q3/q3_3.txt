@@ -1,0 +1,19 @@
+1.
+I think the code doesn't compile becaues trait objects must use dynamic dispatch when the concrete type of the trait, 
+say a `Visitor` trait, is not known at compile-time.
+
+The `plugins` vecotr in the `Transformer` holds instances of `Plugin` which in turn contain a visitor field of type
+`Visitor`.
+
+The `Visitor` is a trait and Rust does not allow direct instantiation of traits since traits are not sized.
+
+Thus, to enable storage of trait objects in a struct or collection, the `visitor` field must use a trait object that 
+allows for dynamic dispatch, such as `Box<dyn Visitor>` or `&dyn Visitor`.
+
+2.
+First, we have to change the `visitor` type from a trait to a trait object such as `Box<dyn Visitor>`
+
+Second, we have to instantiate `Plugin` in `transform_code` from `QuerySelectorTransformer` to one that is boxed 
+as `Box::new(QuerySelectorTransformer)`
+
+Thirdly, with the Visitor trait definition, I will explicitly add the type `Send + Sync` to ensure the trait object is thread-safe.

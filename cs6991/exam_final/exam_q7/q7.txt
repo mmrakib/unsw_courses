@@ -1,0 +1,20 @@
+I think Rust has emerged as a significant milestone due to its unique approach to type safety and concurrency.
+It really feels like to me that it has bridged the gap between high-level, abstract and idomatic programming languages 
+that feel 'nice' to write in, say Python, and low-level languages.
+
+My favourite Rust features that I also believe is a significant development is its ownership model, allowing gauranteed 
+memory safety without the use of a garbage collector. The system catches issues like null pointer deferences and data races 
+at compile time unlike other low-level languages like C and C++ which all rely on manual memory management. Garbage collectors
+tend to hurt performance, and Rust shows it achieves the same type and memory safety while staying competitive as an efficient 
+low-level language.
+
+The concurrency is also game-changing in Rust. Rust prevents data races by ensuring that only one mutable reference to data exists 
+at a time or multiple immutable ones, all enforced at compile-time. This makes concurrent programming safer compared to earlier 
+languages where such guarantees are not provided by the compiler.
+
+Rust also offers zero-cost abstractions, allowing developers to write high-level code without incurring runtime overhead. Its powerful 
+type system and pattern amtching enable expressive code that's both efficient and safe.
+
+My second favourite Rust feature that I believe gets somewhat overlooked when talking about its features is the Cargo package manager. Not 
+only does Rust have an active community around its package manager, but the package manager itself is so unbelievably easy to use. This is 
+in contrast to the use of Makefiles or CMake in other low-level projects written in C or C++.

@@ -1,0 +1,32 @@
+// Without ref support
+macro_rules! map {
+    ($($key:expr => $value:expr,)+) => {{
+        let mut map = ::std::collections::BTreeMap::new();
+        $(
+            map.insert($key, $value);
+        )+
+        map
+    }};
+}
+
+// With ref support
+macro_rules! map {
+    ($($key:expr => $value:tt,)+) => {{
+        let mut map = ::std::collections::BTreeMap::new();
+        $(
+            map_helper!(map, $key, $value);
+        )+
+        map
+    }};
+}
+
+macro_rules! map_helper {
+    ($map:ident, $key:expr, ref $ref_key:expr) => {{
+        let val = $map.get(&$ref_key).unwrap(); // Retrieve the referenced value
+        $map.insert($key, *val); // Insert the dereferenced value
+    }};
+    ($map:ident, $key:expr, $value:expr) => {{
+        $map.insert($key, $value); // Insert the provided value directly
+    }};
+}
+

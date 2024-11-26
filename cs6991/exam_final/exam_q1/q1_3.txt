@@ -1,0 +1,17 @@
+1.
+From my knowledge, Rust does not implement this operation due to its belief in strict *type safety* and 
+*type explicity*.
+
+In Rust, all types need to be well-defined, and the type inference engine, although very powerful, works only 
+in situations where there is no ambiguity.
+
+With integer and float arithmetic, there is much ambiguity, given that the conversion of `i32` to `f64` may lead 
+to subtle issues with precision and unintended behaviour, all embedded in the twos-complement representation of 
+floating point numbers in computers. (The exact kind of issues I'm not sure, I just know that this operation would not 
+be very type safe.)
+
+2.
+I prefer Rust's approach because I believe it prioritises important aspects of programming such as clarity and 
+type safety. As a programmer, we want our code to behave as predictably as possible, and type safety is an important 
+trait of predictable code. Thus, we want the programmer to *intentionally* and *explicitly* write the code, such that 
+avoiding ambiguous type conversions would make them more aware of what their code does.

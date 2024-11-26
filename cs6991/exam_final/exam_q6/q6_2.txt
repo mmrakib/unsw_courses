@@ -1,0 +1,72 @@
+1.
+The `Lazy<T>` struct attempts to implement a lazily initialized value using unsafe code. Here's an analysis of the
+codess suage of unsage Rust.
+
+First, there is a use of a raw pointer `*mut T`. The value field is a mutable raw pointer initialized to null_mut().
+Raw pointers in Rust are unsafe because they point to invalid memory leading to undefined behaviour if dereferenced improperly.
+
+Second, in the `deref` method, the code checks if `self.value` is null. If it is, it calls the initializer function `f` and 
+attempts to write teh value to `self.value` using `self.value.write(value)`. However, since `self.value` is null at this point,
+writing to it is undefined behaviour and leads to a segmentation fault.
+
+Third, the `deref` method takes `&self`, an immutable reference, but it mutates `self.value`. In Rust, mutating shared data through 
+an immutable reference without proper synchronization or interior mutability violates Rust's aliasing rules and leads to undefined 
+behaviour.
+
+2.
+The segfautl occurs because `self.value` is a null pointer when `self.value.write(value)` is called. Attempting to write to a null pointer 
+results in a crash because it points to invalid memory.
+
+3.
+We change the `value` to a type `*mut Option<T>` such that it allows us to represent the uninitialized state with `None` and the initialized 
+state with `Some(T)`. Also, in `new`, we allocated a `Box<Option<T>>` initialized to `None` and convert it into a raw pointer to ensure that `value` 
+points to valid memory.
+
+```rust
+use std::{ops::Deref};
+
+pub struct Lazy<T> {
+    value: *mut Option<T>,
+    f: fn() -> T,
+}
+
+impl<T> Lazy<T> {
+    pub fn new(f: fn() -> T) -> Lazy<T> {
+        Self {
+            // Allocate memory for `Option<T>` initialized to `None`
+            value: Box::into_raw(Box::new(None)),
+            f,
+        }
+    }
+}
+
+impl<T> Deref for Lazy<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe {
+            // If the value is uninitialized (`None`), initialize it
+            if (*self.value).is_none() {
+                let value = (self.f)();
+                // Write the value into the `Option`
+                *self.value = Some(value);
+            }
+
+            // The value is initialized, return a reference to it
+            match &*self.value {
+                Some(ref v) => v,
+                None => unreachable!(), // We just set it to `Some`, so this shouldn't happen
+            }
+        }
+    }
+}
+```
+
+4.
+I think (although I'm not entirel ysure) that the sublte unsoundness comes from the fact that mutating `self.value` 
+through an immutable reference &self without using interior mutability primitives like `UnsafeCell` or synchronization mechanisms.
+
+In Rust, mutating data through an immutable reference vioalte  aliasing rules and can lead to undefined behaviou or synchronization mechanisms.
+
+Thus, a mutation through an immutable refernce without appropriate measurse is a form of unsoundness apparently even `miri` can't detect? (Although 
+I'd expect that it would be able to?)

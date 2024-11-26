@@ -1,0 +1,38 @@
+1.
+The reason why the Rust code isn't valid is because of the closure passed to `thread::spawn`.
+
+The `message` is a borrowed reference `&str` with a lifetime tied to the scope of the `spam_text` function.
+When a thred is spawned, it executes async and may outlive the scope of `spam_text`. Thus, the closure implicitly captures 
+message by reference, causing the borrow to escape the function's lifetime which is disallowed to ensure memory safety 
+in Rust.
+
+On top of this, the threads need `'static` lifetime data because the thread might run independently of the scope in 
+which it was created.
+
+Capturing `message` by reference violates this requirement since the borrowed `message` does not have a `'static` lifetime.
+
+2.
+I'm just gonna write the code because I'm sick of writing haha.
+
+```rust
+use std::thread;
+
+fn spam_text(message: &str) {
+  let mut handles = Vec::new();
+
+  for _ in 0..5 {
+        let message_owned = message.to_string(); 
+        let handle = thread::spawn(move || { 
+            for _ in 0..20 {
+                println!("{}", message_owned);
+            }
+        });
+        handles.push(handle);
+    }
+
+    for handle in handles {
+        handle.join().unwrap(); 
+    }
+}
+```
+

@@ -1,0 +1,9 @@
+I think another suitable Rust `std` library type would be `Option<String>`.
+
+I believe this is the case because with `Result`, you are trying to differentiate between success (`Ok`) 
+and failure (`Err`). Since the unit type `()` is used in the `Err` variant, we know that there is no additional 
+information about the error that needs to be conveyed. 
+
+Thus, `Option<String>`, which differentiates between existence (`Some`) and non-existence (`None`), would be 
+just as suitable for this case, if not more idiomatic and concise, especially given that `()` and `None` convey 
+just as much semantic info.

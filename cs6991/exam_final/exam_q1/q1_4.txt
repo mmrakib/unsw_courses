@@ -1,0 +1,28 @@
+1.
+The type of `predicted_result` is `Option<&str>`.
+
+2.
+So this part of the language is what I mentioned in Q3 to be the *type inference* engine. Of course, I outlined 
+the importance with which type safety is considered in Rust in Q3, and type inference may seem to contradictt that, 
+but Rust's type inference is very strict and only acts in unambiguous cases and happens all at compile-time.
+
+3.
+There are two parts of the code I find to be very un-Rust-like.
+
+The first is the fact that `None` is being used as a placeholder for some uninitialized value and is then reassigned 
+conditionally (ugh).
+
+The second is the fact that `result` is that the use of such a placeholder introduces mutable state unnecessarily.
+
+The code would be more functional and idiomatic if we used `if` and `match` expressions to assign `predicted_result` 
+directly without requiring a mutable variable.
+
+```
+let predicted_result = if zid == 5205060 {
+  Some("FL")
+} else if wam >= 50 {
+  Some("PS")
+} else {
+  None
+}
+```

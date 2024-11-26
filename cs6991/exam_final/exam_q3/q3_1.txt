@@ -1,0 +1,14 @@
+1.
+I believe the difference between `Rhs` and `Output` is that one is a generic type parameter for the right-hand 
+side of the multiplication operation, while the other is an associated type tied to a trait implementation.
+
+The laatter acts as a placeholder for a type that will be defined when the trait is implemented for a particular type.
+
+2.
+Using a type parameter such as `Rhs` means that the multiplication operation can be defined for a multitude of different types, allowing 
+for flexibility in operating overloading. 
+
+3.
+Using an associated type for `Output` improves claridy and readability, making it easier to specify or refer to 
+the ressult of a multiplication operation. This means that `Output` doesn't have to be parsed as a type parameter 
+every time and is instead bound inherently within the `Mul`'s implementation.

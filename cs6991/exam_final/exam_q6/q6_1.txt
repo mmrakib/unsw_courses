@@ -1,0 +1,28 @@
+1.
+I think it's feasible to write real-world Rust programs without using any unsafe code, including dependencies.
+
+Rust's has a powerfultype system and owernship model whih allows developers like myself to write efficient and 
+robust apps that are entirely within the safe subset of the language. The `std` and many popular crates provide 
+safe abstractions over low-level oeprations.
+
+I do admit that there are places where writing unsafe code might be challenging:
+
+First, [eformance critical sections that require very fine-grained control over memory and performance only possible 
+with unsafe code.
+
+Second, lowl level system programming that necessitate unsafe code.
+
+Out side of these particular applications, I believe we can write safe code all the way through and still have an 
+amazing safe AND fast program out of it!
+
+2.
+Unsafe Rust allows you to bypass many of the compiler's safety checks, thus granting more control
+but also introducing potential risks. You leave yourself open to memory safety violations like null pointer dereferences, 
+dangling references, buffer overflows, data races and so forth. You also leave yourself open to undefined behaviour, crashes, 
+and security vulnerabilities. 
+
+In order to avoid these pitfalls, I believe you should keep unsafe Rust encapsulated into well-confined, well-audited blocks 
+with safe interfaces. I also think extensive code review and testing of these unsafe blocks are necessary. Best practices and 
+idiomatic code aid in this endavour.
+
+
