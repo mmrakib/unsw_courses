@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Pathfinder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">assignment-ii</a> &gt; <a href="index.source.html" class="el_package">dungeonmania.map</a> &gt; <span class="el_source">Pathfinder.java</span></div><h1>Pathfinder.java</h1><pre class="source lang-java linenums">package dungeonmania.map;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.stream.Collectors;
+
+import dungeonmania.entities.Entity;
+import dungeonmania.entities.Portal;
+import dungeonmania.util.Position;
+
+<span class="nc" id="L13">public class Pathfinder {</span>
+    public static Position djikstra(Position src, Position dest, Entity entity, GameMap gameMap) {
+<span class="fc" id="L15">        NodeRegistry nodeRegistry = gameMap.getNodeRegistry();</span>
+<span class="fc" id="L16">        Map&lt;Position, GraphNode&gt; nodes = nodeRegistry.getNodes();</span>
+        // if inputs are invalid, don't move
+<span class="pc bpc" id="L18" title="2 of 4 branches missed.">        if (!nodes.containsKey(src) || !nodes.containsKey(dest))</span>
+<span class="nc" id="L19">            return src;</span>
+
+<span class="fc" id="L21">        Map&lt;Position, Integer&gt; dist = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L22">        Map&lt;Position, Position&gt; prev = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L23">        Map&lt;Position, Boolean&gt; visited = new HashMap&lt;&gt;();</span>
+
+<span class="fc" id="L25">        prev.put(src, null);</span>
+<span class="fc" id="L26">        dist.put(src, 0);</span>
+
+<span class="fc" id="L28">        PriorityQueue&lt;Position&gt; q = new PriorityQueue&lt;&gt;((x, y) -&gt; Integer</span>
+<span class="fc" id="L29">                .compare(dist.getOrDefault(x, Integer.MAX_VALUE), dist.getOrDefault(y, Integer.MAX_VALUE)));</span>
+<span class="fc" id="L30">        q.add(src);</span>
+
+<span class="fc bfc" id="L32" title="All 2 branches covered.">        while (!q.isEmpty()) {</span>
+<span class="fc" id="L33">            Position curr = q.poll();</span>
+<span class="pc bpc" id="L34" title="1 of 4 branches missed.">            if (curr.equals(dest) || dist.get(curr) &gt; 200)</span>
+<span class="nc" id="L35">                break;</span>
+            // check portal
+<span class="fc bfc" id="L37" title="All 4 branches covered.">            if (nodes.containsKey(curr) &amp;&amp; nodes.get(curr).getEntities().stream().anyMatch(Portal.class::isInstance)) {</span>
+<span class="fc" id="L38">                Portal portal = nodes.get(curr).getEntities().stream().filter(Portal.class::isInstance)</span>
+<span class="fc" id="L39">                        .map(Portal.class::cast).collect(Collectors.toList()).get(0);</span>
+<span class="fc" id="L40">                List&lt;Position&gt; teleportDest = portal.getDestPositions(gameMap, entity);</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">                teleportDest.stream().filter(p -&gt; !visited.containsKey(p)).forEach(p -&gt; {</span>
+<span class="fc" id="L42">                    dist.put(p, dist.get(curr));</span>
+<span class="fc" id="L43">                    prev.put(p, prev.get(curr));</span>
+<span class="fc" id="L44">                    q.add(p);</span>
+<span class="fc" id="L45">                });</span>
+<span class="fc" id="L46">                continue;</span>
+            }
+<span class="fc" id="L48">            visited.put(curr, true);</span>
+<span class="fc" id="L49">            List&lt;Position&gt; neighbours = curr.getCardinallyAdjacentPositions().stream()</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">                    .filter(p -&gt; !visited.containsKey(p))</span>
+<span class="fc bfc" id="L51" title="All 4 branches covered.">                    .filter(p -&gt; !nodes.containsKey(p) || nodes.get(p).canMoveOnto(gameMap, entity))</span>
+<span class="fc" id="L52">                    .collect(Collectors.toList());</span>
+
+<span class="fc" id="L54">            neighbours.forEach(n -&gt; {</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">                int newDist = dist.get(curr) + (nodes.containsKey(n) ? nodes.get(n).getWeight() : 1);</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">                if (newDist &lt; dist.getOrDefault(n, Integer.MAX_VALUE)) {</span>
+<span class="fc" id="L57">                    q.remove(n);</span>
+<span class="fc" id="L58">                    dist.put(n, newDist);</span>
+<span class="fc" id="L59">                    prev.put(n, curr);</span>
+<span class="fc" id="L60">                    q.add(n);</span>
+                }
+<span class="fc" id="L62">            });</span>
+<span class="fc" id="L63">        }</span>
+<span class="fc" id="L64">        Position ret = dest;</span>
+<span class="pc bpc" id="L65" title="1 of 4 branches missed.">        if (prev.get(ret) == null || ret.equals(src))</span>
+<span class="fc" id="L66">            return src;</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        while (!prev.get(ret).equals(src)) {</span>
+<span class="fc" id="L68">            ret = prev.get(ret);</span>
+        }
+<span class="fc" id="L70">        return ret;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NodeRegistry.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">assignment-ii</a> &gt; <a href="index.source.html" class="el_package">dungeonmania.map</a> &gt; <span class="el_source">NodeRegistry.java</span></div><h1>NodeRegistry.java</h1><pre class="source lang-java linenums">package dungeonmania.map;
+
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import dungeonmania.entities.Entity;
+import dungeonmania.util.Position;
+
+public class NodeRegistry {
+    private Map&lt;Position, GraphNode&gt; nodes;
+
+<span class="fc" id="L15">    public NodeRegistry() {</span>
+<span class="fc" id="L16">        nodes = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L17">    }</span>
+
+    public void register(Entity entity) {
+<span class="fc" id="L20">        GraphNode node = new GraphNode(entity);</span>
+<span class="fc" id="L21">        Position p = node.getPosition();</span>
+<span class="fc bfc" id="L22" title="All 2 branches covered.">        if (!nodes.containsKey(p))</span>
+<span class="fc" id="L23">            nodes.put(p, node);</span>
+        else {
+<span class="fc" id="L25">            GraphNode curr = nodes.get(p);</span>
+<span class="fc" id="L26">            curr.mergeNode(node);</span>
+<span class="fc" id="L27">            nodes.put(p, curr);</span>
+        }
+<span class="fc" id="L29">    }</span>
+
+    public void register(GraphNode node) {
+<span class="fc" id="L32">        Position p = node.getPosition();</span>
+<span class="fc bfc" id="L33" title="All 2 branches covered.">        if (!nodes.containsKey(p))</span>
+<span class="fc" id="L34">            nodes.put(p, node);</span>
+        else {
+<span class="fc" id="L36">            GraphNode curr = nodes.get(p);</span>
+<span class="fc" id="L37">            curr.mergeNode(node);</span>
+<span class="fc" id="L38">            nodes.put(p, curr);</span>
+        }
+<span class="fc" id="L40">    }</span>
+
+    public void unregister(Entity entity) {
+<span class="fc" id="L43">        Position p = entity.getPosition();</span>
+<span class="pc bpc" id="L44" title="1 of 2 branches missed.">        if (nodes.containsKey(p)) {</span>
+<span class="fc" id="L45">            nodes.get(p).removeEntity(entity);</span>
+<span class="fc bfc" id="L46" title="All 2 branches covered.">            if (nodes.get(p).size() == 0) {</span>
+<span class="fc" id="L47">                nodes.remove(p);</span>
+            }
+        }
+<span class="fc" id="L50">    }</span>
+
+    public Entity getEntity(String id) {
+<span class="fc" id="L53">        Entity res = null;</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        for (Map.Entry&lt;Position, GraphNode&gt; entry : nodes.entrySet()) {</span>
+<span class="fc" id="L55">            List&lt;Entity&gt; es = entry.getValue().getEntities().stream().filter(e -&gt; e.getId().equals(id))</span>
+<span class="fc" id="L56">                    .collect(Collectors.toList());</span>
+<span class="pc bpc" id="L57" title="1 of 4 branches missed.">            if (es != null &amp;&amp; es.size() &gt; 0) {</span>
+<span class="fc" id="L58">                res = es.get(0);</span>
+<span class="fc" id="L59">                break;</span>
+            }
+<span class="fc" id="L61">        }</span>
+<span class="fc" id="L62">        return res;</span>
+    }
+
+    public List&lt;Entity&gt; getEntities(Position p) {
+<span class="fc" id="L66">        GraphNode node = nodes.get(p);</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        return (node != null) ? node.getEntities() : new ArrayList&lt;&gt;();</span>
+    }
+
+    public List&lt;Entity&gt; getEntities() {
+<span class="fc" id="L71">        List&lt;Entity&gt; entities = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L72">        nodes.forEach((k, v) -&gt; entities.addAll(v.getEntities()));</span>
+<span class="fc" id="L73">        return entities;</span>
+    }
+
+    public &lt;T extends Entity&gt; List&lt;T&gt; getEntities(Class&lt;T&gt; type) {
+<span class="fc" id="L77">        return getEntities().stream().filter(type::isInstance).map(type::cast).collect(Collectors.toList());</span>
+    }
+
+    public Map&lt;Position, GraphNode&gt; getNodes() {
+<span class="fc" id="L81">        return nodes;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

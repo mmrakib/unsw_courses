@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>InvincibilityPotionMovementStrategy.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">assignment-ii</a> &gt; <a href="index.source.html" class="el_package">dungeonmania.entities.enemies.movementstrategies</a> &gt; <span class="el_source">InvincibilityPotionMovementStrategy.java</span></div><h1>InvincibilityPotionMovementStrategy.java</h1><pre class="source lang-java linenums">package dungeonmania.entities.enemies.movementstrategies;
+
+import dungeonmania.Game;
+import dungeonmania.entities.enemies.Enemy;
+import dungeonmania.map.GameMap;
+import dungeonmania.util.Direction;
+import dungeonmania.util.Position;
+
+<span class="fc" id="L9">public class InvincibilityPotionMovementStrategy implements MovementStrategy {</span>
+    @Override
+    public Position getNextMove(Game game, Enemy enemy) {
+        Position nextPos;
+<span class="fc" id="L13">        GameMap map = game.getMap();</span>
+
+<span class="fc" id="L15">        Position plrDiff = Position.calculatePositionBetween(map.getPlayer().getPosition(), enemy.getPosition());</span>
+
+<span class="pc bpc" id="L17" title="1 of 2 branches missed.">        Position moveX = (plrDiff.getX() &gt;= 0) ? Position.translateBy(enemy.getPosition(), Direction.RIGHT)</span>
+<span class="pc" id="L18">                : Position.translateBy(enemy.getPosition(), Direction.LEFT);</span>
+<span class="pc bpc" id="L19" title="1 of 2 branches missed.">        Position moveY = (plrDiff.getY() &gt;= 0) ? Position.translateBy(enemy.getPosition(), Direction.UP)</span>
+<span class="pc" id="L20">                : Position.translateBy(enemy.getPosition(), Direction.DOWN);</span>
+<span class="fc" id="L21">        Position offset = enemy.getPosition();</span>
+<span class="fc bfc" id="L22" title="All 4 branches covered.">        if (plrDiff.getY() == 0 &amp;&amp; map.canMoveTo(enemy, moveX))</span>
+<span class="fc" id="L23">            offset = moveX;</span>
+<span class="fc bfc" id="L24" title="All 4 branches covered.">        else if (plrDiff.getX() == 0 &amp;&amp; map.canMoveTo(enemy, moveY))</span>
+<span class="fc" id="L25">            offset = moveY;</span>
+<span class="fc bfc" id="L26" title="All 2 branches covered.">        else if (Math.abs(plrDiff.getX()) &gt;= Math.abs(plrDiff.getY())) {</span>
+<span class="fc bfc" id="L27" title="All 2 branches covered.">            if (map.canMoveTo(enemy, moveX))</span>
+<span class="fc" id="L28">                offset = moveX;</span>
+<span class="pc bpc" id="L29" title="1 of 2 branches missed.">            else if (map.canMoveTo(enemy, moveY))</span>
+<span class="nc" id="L30">                offset = moveY;</span>
+            else
+<span class="fc" id="L32">                offset = enemy.getPosition();</span>
+        } else {
+<span class="fc bfc" id="L34" title="All 2 branches covered.">            if (map.canMoveTo(enemy, moveY))</span>
+<span class="fc" id="L35">                offset = moveY;</span>
+<span class="pc bpc" id="L36" title="1 of 2 branches missed.">            else if (map.canMoveTo(enemy, moveX))</span>
+<span class="fc" id="L37">                offset = moveX;</span>
+            else
+<span class="nc" id="L39">                offset = enemy.getPosition();</span>
+        }
+<span class="fc" id="L41">        nextPos = offset;</span>
+
+<span class="fc" id="L43">        return nextPos;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

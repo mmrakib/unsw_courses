@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CraftingService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">assignment-ii</a> &gt; <a href="index.source.html" class="el_package">dungeonmania.entities.inventory</a> &gt; <span class="el_source">CraftingService.java</span></div><h1>CraftingService.java</h1><pre class="source lang-java linenums">package dungeonmania.entities.inventory;
+
+import java.util.List;
+
+import dungeonmania.entities.collectables.Arrow;
+import dungeonmania.entities.collectables.Key;
+import dungeonmania.entities.collectables.Treasure;
+import dungeonmania.entities.collectables.Wood;
+
+public class CraftingService {
+    private Inventory inventory;
+
+<span class="fc" id="L13">    public CraftingService(Inventory inventory) {</span>
+<span class="fc" id="L14">        this.inventory = inventory;</span>
+<span class="fc" id="L15">    }</span>
+
+    public boolean canBuildBow() {
+<span class="fc" id="L18">        int wood = inventory.count(Wood.class);</span>
+<span class="fc" id="L19">        int arrows = inventory.count(Arrow.class);</span>
+
+<span class="fc bfc" id="L21" title="All 4 branches covered.">        return (wood &gt;= 1 &amp;&amp; arrows &gt;= 3) ? true : false;</span>
+    }
+
+    public boolean canBuildShield() {
+<span class="fc" id="L25">        int wood = inventory.count(Wood.class);</span>
+<span class="fc" id="L26">        int treasure = inventory.count(Treasure.class);</span>
+<span class="fc" id="L27">        int keys = inventory.count(Key.class);</span>
+
+<span class="fc bfc" id="L29" title="All 6 branches covered.">        return (wood &gt;= 2 &amp;&amp; (treasure &gt;= 1 || keys &gt;= 1)) ? true : false;</span>
+    }
+
+    public void buildBow() {
+<span class="fc" id="L33">        List&lt;Wood&gt; wood = inventory.getEntities(Wood.class);</span>
+<span class="fc" id="L34">        List&lt;Arrow&gt; arrows = inventory.getEntities(Arrow.class);</span>
+
+<span class="fc" id="L36">        inventory.remove(wood.get(0));</span>
+<span class="fc" id="L37">        inventory.remove(arrows.get(0));</span>
+<span class="fc" id="L38">        inventory.remove(arrows.get(1));</span>
+<span class="fc" id="L39">        inventory.remove(arrows.get(2));</span>
+<span class="fc" id="L40">    }</span>
+
+    public void buildShield() {
+<span class="fc" id="L43">        List&lt;Wood&gt; wood = inventory.getEntities(Wood.class);</span>
+<span class="fc" id="L44">        List&lt;Treasure&gt; treasure = inventory.getEntities(Treasure.class);</span>
+<span class="fc" id="L45">        List&lt;Key&gt; keys = inventory.getEntities(Key.class);</span>
+
+<span class="fc" id="L47">        inventory.remove(wood.get(0));</span>
+<span class="fc" id="L48">        inventory.remove(wood.get(1));</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (treasure.size() &gt;= 1) {</span>
+<span class="fc" id="L50">            inventory.remove(treasure.get(0));</span>
+        } else {
+<span class="fc" id="L52">            inventory.remove(keys.get(0));</span>
+        }
+<span class="fc" id="L54">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

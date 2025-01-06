@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameMap.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">assignment-ii</a> &gt; <a href="index.source.html" class="el_package">dungeonmania.map</a> &gt; <span class="el_source">GameMap.java</span></div><h1>GameMap.java</h1><pre class="source lang-java linenums">package dungeonmania.map;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import dungeonmania.Game;
+import dungeonmania.entities.Entity;
+import dungeonmania.entities.Player;
+import dungeonmania.util.Direction;
+import dungeonmania.util.Position;
+
+<span class="fc" id="L13">public class GameMap {</span>
+    private Game game;
+    private Player player;
+
+<span class="fc" id="L17">    private NodeRegistry nodeRegistry = new NodeRegistry();</span>
+
+    /**
+     * Initialise the game map
+     * 1. pair up portals
+     * 2. register all movables
+     * 3. register all spawners
+     * 4. register bombs and switches
+     * 5. more...
+     */
+    public void init() {
+<span class="fc" id="L28">        GameMapInitializer.initialise(game, this);</span>
+<span class="fc" id="L29">    }</span>
+
+    public void moveTo(Entity entity, Position position) {
+<span class="fc bfc" id="L32" title="All 2 branches covered.">        if (!canMoveTo(entity, position))</span>
+<span class="fc" id="L33">            return;</span>
+
+<span class="fc" id="L35">        triggerMovingAwayEvent(entity);</span>
+<span class="fc" id="L36">        removeNode(entity);</span>
+<span class="fc" id="L37">        entity.setPosition(position);</span>
+<span class="fc" id="L38">        addEntity(entity);</span>
+<span class="fc" id="L39">        triggerOverlapEvent(entity);</span>
+<span class="fc" id="L40">    }</span>
+
+    public void moveTo(Entity entity, Direction direction) {
+<span class="pc bpc" id="L43" title="1 of 2 branches missed.">        if (!canMoveTo(entity, Position.translateBy(entity.getPosition(), direction)))</span>
+<span class="nc" id="L44">            return;</span>
+<span class="fc" id="L45">        triggerMovingAwayEvent(entity);</span>
+<span class="fc" id="L46">        removeNode(entity);</span>
+<span class="fc" id="L47">        entity.translate(direction);</span>
+<span class="fc" id="L48">        addEntity(entity);</span>
+<span class="fc" id="L49">        triggerOverlapEvent(entity);</span>
+<span class="fc" id="L50">    }</span>
+
+    private void triggerMovingAwayEvent(Entity entity) {
+<span class="fc" id="L53">        List&lt;Runnable&gt; callbacks = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L54">        getEntities(entity.getPosition()).forEach(e -&gt; {</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">            if (e != entity)</span>
+<span class="fc" id="L56">                callbacks.add(() -&gt; e.onMovedAway(this, entity));</span>
+<span class="fc" id="L57">        });</span>
+<span class="fc" id="L58">        callbacks.forEach(callback -&gt; {</span>
+<span class="fc" id="L59">            callback.run();</span>
+<span class="fc" id="L60">        });</span>
+<span class="fc" id="L61">    }</span>
+
+    private void triggerOverlapEvent(Entity entity) {
+<span class="fc" id="L64">        List&lt;Runnable&gt; overlapCallbacks = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L65">        getEntities(entity.getPosition()).forEach(e -&gt; {</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">            if (e != entity)</span>
+<span class="fc" id="L67">                overlapCallbacks.add(() -&gt; e.onOverlap(this, entity));</span>
+<span class="fc" id="L68">        });</span>
+<span class="fc" id="L69">        overlapCallbacks.forEach(callback -&gt; {</span>
+<span class="fc" id="L70">            callback.run();</span>
+<span class="fc" id="L71">        });</span>
+<span class="fc" id="L72">    }</span>
+
+    public boolean canMoveTo(Entity entity, Position position) {
+<span class="fc" id="L75">        Map&lt;Position, GraphNode&gt; nodes = nodeRegistry.getNodes();</span>
+<span class="fc bfc" id="L76" title="All 4 branches covered.">        return !nodes.containsKey(position) || nodes.get(position).canMoveOnto(this, entity);</span>
+    }
+
+    public Position dijkstraPathFind(Position src, Position dest, Entity entity) {
+<span class="fc" id="L80">        return Pathfinder.djikstra(src, dest, entity, this);</span>
+    }
+
+    public void removeNode(Entity entity) {
+<span class="fc" id="L84">        nodeRegistry.unregister(entity);</span>
+<span class="fc" id="L85">    }</span>
+
+    public void destroyEntity(Entity entity) {
+<span class="fc" id="L88">        removeNode(entity);</span>
+<span class="fc" id="L89">        entity.onDestroy(this);</span>
+<span class="fc" id="L90">    }</span>
+
+    public void addEntity(Entity entity) {
+<span class="fc" id="L93">        nodeRegistry.register(entity);</span>
+<span class="fc" id="L94">    }</span>
+
+    public void addNode(GraphNode node) {
+<span class="fc" id="L97">        nodeRegistry.register(node);</span>
+<span class="fc" id="L98">    }</span>
+
+    public Entity getEntity(String id) {
+<span class="fc" id="L101">        return nodeRegistry.getEntity(id);</span>
+    }
+
+    public List&lt;Entity&gt; getEntities(Position p) {
+<span class="fc" id="L105">        return nodeRegistry.getEntities(p);</span>
+    }
+
+    public List&lt;Entity&gt; getEntities() {
+<span class="fc" id="L109">        return nodeRegistry.getEntities();</span>
+    }
+
+    public &lt;T extends Entity&gt; List&lt;T&gt; getEntities(Class&lt;T&gt; type) {
+<span class="fc" id="L113">        return nodeRegistry.getEntities(type);</span>
+    }
+
+    public Player getPlayer() {
+<span class="fc" id="L117">        return player;</span>
+    }
+
+    public void setPlayer(Player player) {
+<span class="fc" id="L121">        this.player = player;</span>
+<span class="fc" id="L122">    }</span>
+
+    public Game getGame() {
+<span class="fc" id="L125">        return game;</span>
+    }
+
+    public void setGame(Game game) {
+<span class="fc" id="L129">        this.game = game;</span>
+<span class="fc" id="L130">    }</span>
+
+    public NodeRegistry getNodeRegistry() {
+<span class="fc" id="L133">        return nodeRegistry;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

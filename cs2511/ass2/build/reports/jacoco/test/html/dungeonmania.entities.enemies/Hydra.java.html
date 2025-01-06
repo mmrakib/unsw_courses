@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Hydra.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">assignment-ii</a> &gt; <a href="index.source.html" class="el_package">dungeonmania.entities.enemies</a> &gt; <span class="el_source">Hydra.java</span></div><h1>Hydra.java</h1><pre class="source lang-java linenums">package dungeonmania.entities.enemies;
+
+import dungeonmania.Game;
+import dungeonmania.entities.Entity;
+import dungeonmania.entities.Player;
+import dungeonmania.entities.collectables.potions.InvincibilityPotion;
+import dungeonmania.entities.enemies.movementstrategies.DefaultZombieMovementStrategy;
+import dungeonmania.entities.enemies.movementstrategies.InvincibilityPotionMovementStrategy;
+import dungeonmania.entities.enemies.movementstrategies.MovementStrategy;
+import dungeonmania.map.GameMap;
+import dungeonmania.util.Position;
+
+public class Hydra extends Enemy {
+    public static final double DEFAULT_HEALTH = 15.0;
+    public static final double DEFAULT_ATTACK = 10.0;
+    public static final double DEFAULT_HEALTH_INCREASE_RATE = 0.4;
+    public static final double DEFAULT_HEALTH_INCREASE_AMOUNT = 5;
+
+    protected double healthIncreaseRate;
+    protected double healthIncreaseAmount;
+
+    public Hydra(Position position, double health, double attack, double healthIncreaseRate,
+            double healthIncreaseAmount) {
+<span class="fc" id="L24">        super(position, health, attack);</span>
+<span class="fc" id="L25">        this.healthIncreaseRate = healthIncreaseRate;</span>
+<span class="fc" id="L26">        this.healthIncreaseAmount = healthIncreaseAmount;</span>
+<span class="fc" id="L27">    }</span>
+
+    @Override
+    public void move(Game game) {
+        Position nextPos;
+<span class="fc" id="L32">        GameMap map = game.getMap();</span>
+
+        MovementStrategy movementStrategy;
+<span class="pc bpc" id="L35" title="1 of 2 branches missed.">        if (map.getPlayer().getEffectivePotion() instanceof InvincibilityPotion) {</span>
+<span class="nc" id="L36">            movementStrategy = new InvincibilityPotionMovementStrategy();</span>
+        } else {
+<span class="fc" id="L38">            movementStrategy = new DefaultZombieMovementStrategy();</span>
+        }
+<span class="fc" id="L40">        nextPos = movementStrategy.getNextMove(game, this);</span>
+
+<span class="fc" id="L42">        game.getMap().moveTo(this, nextPos);</span>
+<span class="fc" id="L43">    }</span>
+
+    @Override
+    public void onOverlap(GameMap map, Entity entity) {
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        if (entity instanceof Player) {</span>
+<span class="nc bnc" id="L48" title="All 2 branches missed.">            if (Math.random() &gt; healthIncreaseRate) {</span>
+<span class="nc" id="L49">                Player player = (Player) entity;</span>
+<span class="nc" id="L50">                map.getGame().battle(player, this);</span>
+<span class="nc" id="L51">            } else {</span>
+<span class="nc" id="L52">                battleStatistics.setHealth(battleStatistics.getHealth() + healthIncreaseAmount);</span>
+            }
+        }
+<span class="nc" id="L55">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>
